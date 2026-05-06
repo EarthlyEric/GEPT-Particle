@@ -683,6 +683,26 @@ body[data-theme="dark"] .filter-select {
   background: rgba(136, 57, 239, 0.14);
 }
 
+.drawer-word {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--md-sys-color-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.drawer-word:hover {
+  text-decoration: underline;
+}
+
+.drawer-word:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 body[data-theme="dark"] .drawer-table tr.current td {
   background: rgba(203, 166, 247, 0.18);
 }

@@ -195,14 +195,16 @@ function renderDrawerList() {
     statusTd.appendChild(badge);
     tr.appendChild(statusTd);
 
-    const cells = [
-      item.word,
-      item.pos,
-      item.meaning,
-      item.note,
-      item.level,
-      item.academic,
-    ];
+    const wordTd = document.createElement("td");
+    const wordButton = document.createElement("button");
+    wordButton.type = "button";
+    wordButton.className = "drawer-word";
+    wordButton.dataset.id = item.id;
+    wordButton.textContent = item.word;
+    wordTd.appendChild(wordButton);
+    tr.appendChild(wordTd);
+
+    const cells = [item.pos, item.meaning, item.note, item.level, item.academic];
     cells.forEach((value) => {
       const td = document.createElement("td");
       td.textContent = value || "";
@@ -473,6 +475,18 @@ function applySavedStatusToStats() {
   updateStats();
 }
 
+function jumpToWordFromDrawer(event) {
+  const wordButton = event.target.closest(".drawer-word");
+  if (!wordButton) return;
+  const id = Number(wordButton.dataset.id);
+  if (!Number.isInteger(id)) return;
+  const targetIndex = state.items.findIndex((item) => item.id === id);
+  if (targetIndex < 0) return;
+  state.index = targetIndex;
+  ensureAutoSkipThenRender();
+  closeDrawer();
+}
+
 function attachEvents() {
   elements.menuToggle.addEventListener("click", () => {
     elements.menuToggle.classList.toggle("active");
@@ -498,6 +512,7 @@ function attachEvents() {
   });
   elements.drawerClose.addEventListener("click", closeDrawer);
   elements.drawerOverlay.addEventListener("click", closeDrawer);
+  elements.drawerTableBody.addEventListener("click", jumpToWordFromDrawer);
 
   elements.next.addEventListener("click", nextCard);
   elements.prev.addEventListener("click", () => {
