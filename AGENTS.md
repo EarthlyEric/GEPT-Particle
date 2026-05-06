@@ -1,24 +1,15 @@
 # Agent Guidelines for GEPT Particle
 
-This is a vanilla JavaScript single-page application with no build system.
+This is a vanilla JavaScript single-page app with no build tooling.
+Keep changes lightweight and consistent with the existing patterns.
 
-## Project Structure
+## Commands
 
-```
-GEPT Particle/
-├── app.js              # Main application logic (519 lines)
-├── index.html          # HTML structure (142 lines)
-├── styles.css          # CSS styles (593 lines)
-├── GEPT_Intermediate.csv  # Vocabulary data (~3000 words)
-└── AGENTS.md           # This file
-```
-
-## Running the Application
-
-Because the app fetches a CSV file via `fetch()`, it must be served via HTTP (not `file://`). Use any local server:
+No build, lint, or test tools are configured.
+Use a local static server to run the app because it fetches the CSV via HTTP.
 
 ```bash
-# Python 3 (most common)
+# Python 3
 python -m http.server 8000
 
 # Node.js (if installed)
@@ -28,127 +19,95 @@ npx serve .
 php -S localhost:8000
 ```
 
-Then open `http://localhost:8000` in a browser.
+Open `http://localhost:8000`.
 
-## Commands
+### Single Test Execution
 
-- **No build commands exist** - this is a pure static site
-- **No test framework is configured** - no tests currently exist
-- **No linting is set up** - no code quality tools configured
+There are no tests today. If you add a test runner, document a single-test command
+in this file (e.g., `npx vitest run path/to/file.spec.js`).
 
-If adding tests, prefer Vitest (minimal config, browser-compatible via Playwright). Run a single test file with `npx vitest run filename.spec.js`.
+## Repository Structure
 
-## Code Style Guidelines
+```
+GEPT Particle/
+├── app.js
+├── index.html
+├── styles.css
+├── GEPT_Intermediate.csv
+└── AGENTS.md
+```
 
-### JavaScript Conventions
+## Code Style
 
-- **Language**: ES6+ (const/let, arrow functions, async/await, template literals)
-- **No TypeScript** - do not add TypeScript unless explicitly requested
-- **No build system** - keep as vanilla JS unless requested otherwise
-- **DOM access**: Use `document.getElementById()` (existing pattern at app.js:1-39)
-- **State management**: Single global `state` object at top of file (app.js:41-52)
-- **Element references**: Single global `elements` object caching DOM elements
-- **Error handling**: Use try/catch with meaningful error messages in Chinese
+### General
 
-### Naming Conventions
+- Keep the app as plain JS/CSS/HTML unless asked to introduce a build system.
+- Use ASCII in source unless non-ASCII is required (already uses zh-Hant).
+- Prefer small, local edits over refactors.
+- Avoid adding dependencies unless required for functionality.
 
-- **Variables/functions**: camelCase (`applyFilters`, `state.items`)
-- **Constants**: SCREAMING_SNAKE_CASE for true constants (`headerRow`), camelCase for module-level config objects
-- **CSS classes**: kebab-case (`.card-panel`, `.btn-filled`)
-- **IDs**: kebab-case (`filterLevel`, `drawerOverlay`)
-- **Booleans**: Prefix with `is`, `has`, `should` (e.g., `isLoading`, `hasError`)
+### JavaScript
 
-### Import Guidelines
+- ES6+ features are fine (`const`, `let`, arrow functions, async/await).
+- Use semicolons and 2-space indentation.
+- Keep all DOM refs in the `elements` object near the top of `app.js`.
+- Keep all app state in the `state` object near the top of `app.js`.
+- Keep functions in this order:
+  1) constants
+  2) pure utilities
+  3) state mutators
+  4) render/UI
+  5) event handlers
+  6) init
+- Prefer explicit null/undefined checks when reading optional DOM nodes.
+- Avoid global variables outside `elements`, `state`, and constants.
 
-- No imports/exports - this is a single-file script loaded via `<script src="app.js">`
-- If adding modularity, use ES modules only with `<script type="module" src="...">`
-- Avoid CDN dependencies unless necessary for functionality
+### Naming
 
-### Function Organization
+- Variables/functions: `camelCase`.
+- Constants: `UPPER_SNAKE_CASE` only for true constants.
+- Booleans: `is/has/should` prefixes where it improves clarity.
+- CSS classes: `kebab-case`.
+- IDs: `camelCase` (matches existing DOM ids).
 
-Follow this order in app.js:
-1. Global `elements` object (DOM references)
-2. Global `state` object (application state)
-3. Constants (CSV header row, etc.)
-4. Pure utility functions (parseCsv, data transformation)
-5. State-modifying functions (updateStats, navigation)
-6. Event handlers and UI functions
-7. Initialization function (`init`)
+### Imports/Modules
 
-### Formatting
-
-- **Indentation**: 2 spaces (matching existing code)
-- **Line endings**: LF (Unix-style) - configure editor to use this
-- **Maximum line length**: None enforced, but keep lines readable (~100 chars target)
-- **Semicolons**: Use semicolons (existing pattern)
-- **Braces**: K&R style (opening brace on same line)
-- **Spacing**: Single space after keywords (`if (...)`, `function ()`), no extra spaces in function calls
-
-### CSS Guidelines
-
-- Use CSS custom properties (variables) for theming (e.g., `--md-sys-color-*`)
-- Follow Material Design 3 naming conventions
-- Use `:root` for light theme, `body[data-theme="dark"]` for dark overrides
-- Use `clamp()` for responsive typography
-- Prefer flexbox and grid for layout
-- Group related styles with comments (e.g., `/* Card Styles */`)
-- Avoid inline styles; use CSS classes instead
+- No modules are used. `app.js` is loaded via a normal `<script>` tag.
+- If modularization is required, use ES modules and keep it simple.
 
 ### Error Handling
 
-- Wrap async operations in try/catch (e.g., fetch calls)
-- Provide user-friendly error messages in Chinese (e.g., `setStatus('載入失敗，請稍後重試')`)
-- Log errors to console for debugging (`console.error()`)
-- Show errors in the status element, not alert() dialogs
-- Handle network errors gracefully with fallback UI
+- Wrap async operations in `try/catch`.
+- Show user-facing messages in Chinese (Traditional).
+- Log errors to console for debugging.
+- Do not use `alert()`.
 
-### HTML Guidelines
+### Formatting
 
-- Use semantic HTML5 elements (`<main>`, `<header>`, `<footer>`, `<aside>`)
-- Include `aria-*` attributes for accessibility (e.g., `aria-live="polite"`)
-- Use `lang="zh-Hant"` for Traditional Chinese
-- Keep HTML minimal; prefer JS-driven UI updates
-- Use data-* attributes for state markers on elements
+- Indentation: 2 spaces.
+- Line length: keep reasonable (~100 chars) but no hard limit.
+- Use K&R braces.
+- Avoid trailing whitespace.
 
-### Accessibility
+### HTML
 
-- All interactive elements must be keyboard accessible
-- Use `<button>` for actions, `<a>` for navigation
-- Include proper `aria-label` or `aria-labelledby` on icon-only buttons
-- Ensure sufficient color contrast (4.5:1 for text)
-- Status announcements should use `aria-live="polite"` region
+- Keep HTML semantic and minimal.
+- Use ARIA labels for icon-only buttons.
+- `lang="zh-Hant"` should remain.
 
-### Performance
+### CSS
 
-- Minimize DOM operations; cache element references in `elements` object
-- Use event delegation for repeated elements (e.g., table rows)
-- Avoid re-rendering entire lists; update individual cells instead
-- Use CSS transforms for animations, avoid layout-triggering properties
+- Use CSS variables for theme values.
+- Keep light theme in `:root`, dark overrides in `body[data-theme="dark"]`.
+- Prefer flex/grid over absolute positioning.
+- Avoid inline styles.
 
-### Adding Features
+## Behavior Notes
 
-- Keep `app.js` as a single file unless complexity demands modules
-- Add new state properties to the `state` object, new DOM refs to `elements` object
-- Write functions as standalone (not wrapped in IIFE or class)
-- Follow existing function order: constants → state → utility functions → UI functions → init
-- Document new functions with brief inline comments for complex logic
+- The app reads `GEPT_Intermediate.csv` via `fetch()`.
+- Use a local HTTP server for testing.
+- Do not remove the CSV fetch behavior unless requested.
 
-### Testing Guidelines (when added)
+## Cursor/Copilot Rules
 
-- Place tests in `tests/` directory
-- Use Vitest with `describe`/`it` syntax
-- Test one thing per test case
-- Mock `fetch` and DOM APIs for unit tests
-- Use Playwright for integration/e2e tests (browser environment needed)
-
-## Future Considerations
-
-If adding a build system, prefer Vite over Webpack (simpler, faster). If adding TypeScript, run `tsc --init` and configure `strict: true`.
-
-## Key Files to Know
-
-- `app.js:1-52` - Global state and element references
-- `app.js:56-81` - CSV parsing logic (template string handling)
-- `app.js:200-300` - Card display and navigation logic
-- `app.js:400-450` - Filter and search implementation
-- `styles.css:1-100` - CSS custom properties and base styles
+No Cursor rules or Copilot instructions are present in this repo.

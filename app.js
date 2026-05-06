@@ -30,6 +30,8 @@ const elements = {
   familiarCount: document.getElementById("familiarCount"),
   unfamiliarCount: document.getElementById("unfamiliarCount"),
   status: document.getElementById("status"),
+  statusDot: document.querySelector("#status .status-dot"),
+  statusText: document.getElementById("statusText"),
   card: document.getElementById("card"),
   cardBadge: document.getElementById("cardBadge"),
   progressBar: document.getElementById("progressBar"),
@@ -53,6 +55,40 @@ const state = {
 
 const headerRow = "字彙,詞類,中文,註解,級數,學術字彙";
 
+function parseCsvLine(line) {
+  const columns = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === "\"") {
+      const next = line[i + 1];
+      if (inQuotes && next === "\"") {
+        current += "\"";
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      columns.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  columns.push(current);
+  while (columns.length < 6) {
+    columns.push("");
+  }
+  return columns;
+}
+
 function parseCsv(text) {
   const lines = text.split(/\r?\n/);
   const results = [];
@@ -62,7 +98,7 @@ function parseCsv(text) {
     if (!line) continue;
     if (line === headerRow) continue;
 
-    const columns = line.split(",");
+    const columns = parseCsvLine(line);
     if (columns.length < 3) continue;
 
     const word = (columns[0] || "").trim();
@@ -95,7 +131,14 @@ function updateStats() {
 }
 
 function setStatus(text) {
-  elements.status.textContent = text;
+  if (elements.statusText) {
+    elements.statusText.textContent = text;
+  } else if (elements.status) {
+    elements.status.textContent = text;
+  }
+  if (elements.statusDot) {
+    elements.statusDot.classList.toggle("loaded", text === "已載入");
+  }
 }
 
 function applyTheme() {
@@ -110,6 +153,9 @@ function openDrawer() {
   elements.drawer.setAttribute("aria-hidden", "false");
   elements.drawerOverlay.setAttribute("aria-hidden", "false");
   renderDrawerList();
+  window.requestAnimationFrame(() => {
+    scrollDrawerToCurrent();
+  });
 }
 
 function closeDrawer() {
@@ -121,12 +167,17 @@ function closeDrawer() {
 
 function renderDrawerList() {
   const rows = state.items;
+  const currentId = state.items[state.index]?.id;
   elements.drawerCount.textContent = rows.length.toString();
   elements.drawerTableBody.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
   rows.forEach((item) => {
     const tr = document.createElement("tr");
+    tr.dataset.id = item.id;
+    if (item.id === currentId) {
+      tr.classList.add("current");
+    }
     const statusTd = document.createElement("td");
     statusTd.className = "status-cell";
     const badge = document.createElement("span");
@@ -160,6 +211,14 @@ function renderDrawerList() {
   });
 
   elements.drawerTableBody.appendChild(fragment);
+}
+
+function scrollDrawerToCurrent() {
+  const currentId = state.items[state.index]?.id;
+  if (currentId === undefined || currentId === null) return;
+  const row = elements.drawerTableBody.querySelector(`tr[data-id="${currentId}"]`);
+  if (!row) return;
+  row.scrollIntoView({ block: "center" });
 }
 
 function loadTheme() {
