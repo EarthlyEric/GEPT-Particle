@@ -51,6 +51,7 @@ const state = {
   filterOnlyUnfamiliar: false,
   autoSkipFamiliar: false,
   theme: "light",
+  lastItemId: null,
 };
 
 const headerRow = "字彙,詞類,中文,註解,級數,學術字彙";
@@ -265,6 +266,8 @@ function renderCard() {
   }
 
   state.seen.add(item.id);
+  state.lastItemId = item.id;
+  saveProgress();
   updateStats();
   applyCardFade();
 }
@@ -361,6 +364,12 @@ function applyFilters() {
   });
 
   state.index = 0;
+  if (state.lastItemId !== null) {
+    const restoredIndex = state.items.findIndex((item) => item.id === state.lastItemId);
+    if (restoredIndex >= 0) {
+      state.index = restoredIndex;
+    }
+  }
   state.randomPool = [];
   state.seen = new Set();
   if (state.items.length) {
@@ -386,11 +395,13 @@ function loadProgress() {
     state.unfamiliar = new Set(data.unfamiliar || []);
     state.filterOnlyUnfamiliar = Boolean(data.filterOnlyUnfamiliar);
     state.autoSkipFamiliar = Boolean(data.autoSkipFamiliar);
+    state.lastItemId = Number.isInteger(data.lastItemId) ? data.lastItemId : null;
   } catch (error) {
     state.familiar = new Set();
     state.unfamiliar = new Set();
     state.filterOnlyUnfamiliar = false;
     state.autoSkipFamiliar = false;
+    state.lastItemId = null;
   }
 }
 
@@ -400,6 +411,7 @@ function saveProgress() {
     unfamiliar: Array.from(state.unfamiliar),
     filterOnlyUnfamiliar: state.filterOnlyUnfamiliar,
     autoSkipFamiliar: state.autoSkipFamiliar,
+    lastItemId: state.lastItemId,
   };
   localStorage.setItem("geptProgress", JSON.stringify(payload));
 }
@@ -409,6 +421,7 @@ function clearProgress() {
   state.unfamiliar = new Set();
   state.filterOnlyUnfamiliar = false;
   state.autoSkipFamiliar = false;
+  state.lastItemId = null;
   elements.filterUnfamiliar.checked = false;
   elements.autoSkipFamiliar.checked = false;
   saveProgress();
@@ -421,6 +434,7 @@ function exportProgress() {
     unfamiliar: Array.from(state.unfamiliar),
     filterOnlyUnfamiliar: state.filterOnlyUnfamiliar,
     autoSkipFamiliar: state.autoSkipFamiliar,
+    lastItemId: state.lastItemId,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -441,6 +455,7 @@ async function importProgress(event) {
     state.unfamiliar = new Set(data.unfamiliar || []);
     state.filterOnlyUnfamiliar = data.filterOnlyUnfamiliar || false;
     state.autoSkipFamiliar = data.autoSkipFamiliar || false;
+    state.lastItemId = Number.isInteger(data.lastItemId) ? data.lastItemId : null;
     elements.filterUnfamiliar.checked = state.filterOnlyUnfamiliar;
     elements.autoSkipFamiliar.checked = state.autoSkipFamiliar;
     saveProgress();
