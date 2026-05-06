@@ -14,10 +14,13 @@
         <span class="brand-dot"></span>
         <div class="brand-text">
           <div class="brand-title">GEPT 單字複習</div>
-          <div class="brand-subtitle">Intermediate · MD3 Flashcards</div>
+          <div class="brand-subtitle">https://github.com/EarthlyEric/GEPT-Particle</div>
         </div>
       </div>
-      <div class="header-actions">
+      <button class="menu-toggle" id="menuToggle" aria-label="選單">
+        <span class="menu-icon"></span>
+      </button>
+      <div class="header-actions" id="headerActions">
         <button class="btn btn-outlined" id="themeToggle">深色模式</button>
         <button class="btn btn-tonal" id="drawerToggle">總表</button>
         <button class="btn btn-outlined" id="shuffle">隨機</button>
@@ -27,6 +30,7 @@
     <main class="app-main">
       <section class="card-panel" aria-live="polite">
         <div class="card" id="card">
+          <div class="card-badge" id="cardBadge"></div>
           <div class="card-header">
             <div class="chip" id="pos"></div>
             <div class="chip chip-secondary" id="level"></div>
@@ -39,6 +43,12 @@
           <div class="card-footer">
             <div class="meta" id="academic"></div>
           </div>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-info">
+          <span id="progressText">0 / 0</span>
         </div>
         <div class="card-actions">
           <button class="btn btn-outlined" id="prev">上一個</button>
@@ -96,9 +106,14 @@
               </div>
             </div>
             <div class="stats-card">
-              <div class="stats-title">使用提示</div>
-              <p class="stats-text">使用本機 server 開啟頁面，才能正確載入 CSV。</p>
-              <p class="stats-text">可用 Live Server 或任何 http server。</p>
+              <div class="stats-title">匯入 / 匯出</div>
+              <div class="import-export-group">
+                <button class="btn btn-outlined" id="exportBtn">匯出進度</button>
+                <label class="btn btn-tonal import-label">
+                  匯入進度
+                  <input type="file" id="importFile" accept=".json" hidden />
+                </label>
+              </div>
             </div>
           </div>
         </details>

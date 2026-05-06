@@ -5,6 +5,8 @@ const elements = {
   note: document.getElementById("note"),
   level: document.getElementById("level"),
   academic: document.getElementById("academic"),
+  menuToggle: document.getElementById("menuToggle"),
+  headerActions: document.getElementById("headerActions"),
   themeToggle: document.getElementById("themeToggle"),
   drawerToggle: document.getElementById("drawerToggle"),
   drawer: document.getElementById("drawer"),
@@ -29,6 +31,11 @@ const elements = {
   unfamiliarCount: document.getElementById("unfamiliarCount"),
   status: document.getElementById("status"),
   card: document.getElementById("card"),
+  cardBadge: document.getElementById("cardBadge"),
+  progressBar: document.getElementById("progressBar"),
+  progressText: document.getElementById("progressText"),
+  exportBtn: document.getElementById("exportBtn"),
+  importFile: document.getElementById("importFile"),
 };
 
 const state = {
@@ -79,6 +86,12 @@ function updateStats() {
   elements.seenCount.textContent = state.seen.size.toString();
   elements.familiarCount.textContent = state.familiar.size.toString();
   elements.unfamiliarCount.textContent = state.unfamiliar.size.toString();
+
+  const total = state.items.length;
+  const marked = state.familiar.size + state.unfamiliar.size;
+  const percent = total > 0 ? (marked / total) * 100 : 0;
+  elements.progressBar.style.width = `${percent}%`;
+  elements.progressText.textContent = `${marked} / ${total}`;
 }
 
 function setStatus(text) {
@@ -181,10 +194,15 @@ function renderCard() {
   elements.academic.textContent = item.academic ? `學術字彙：${item.academic}` : "";
 
   elements.card.classList.remove("familiar", "unfamiliar");
+  elements.cardBadge.classList.remove("visible", "familiar", "unfamiliar");
   if (state.familiar.has(item.id)) {
     elements.card.classList.add("familiar");
+    elements.cardBadge.textContent = "熟悉";
+    elements.cardBadge.classList.add("visible", "familiar");
   } else if (state.unfamiliar.has(item.id)) {
     elements.card.classList.add("unfamiliar");
+    elements.cardBadge.textContent = "不熟";
+    elements.cardBadge.classList.add("visible", "unfamiliar");
   }
 
   state.seen.add(item.id);
@@ -338,26 +356,92 @@ function clearProgress() {
   applyFilters();
 }
 
+function exportProgress() {
+  const data = {
+    familiar: Array.from(state.familiar),
+    unfamiliar: Array.from(state.unfamiliar),
+    filterOnlyUnfamiliar: state.filterOnlyUnfamiliar,
+    autoSkipFamiliar: state.autoSkipFamiliar,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `gept-progress-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importProgress(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    state.familiar = new Set(data.familiar || []);
+    state.unfamiliar = new Set(data.unfamiliar || []);
+    state.filterOnlyUnfamiliar = data.filterOnlyUnfamiliar || false;
+    state.autoSkipFamiliar = data.autoSkipFamiliar || false;
+    elements.filterUnfamiliar.checked = state.filterOnlyUnfamiliar;
+    elements.autoSkipFamiliar.checked = state.autoSkipFamiliar;
+    saveProgress();
+    applyFilters();
+    setStatus("匯入成功");
+  } catch (err) {
+    setStatus("匯入失敗");
+    console.error(err);
+  }
+  event.target.value = "";
+}
+
 function applySavedStatusToStats() {
   if (!state.items.length) return;
   updateStats();
 }
 
 function attachEvents() {
+  elements.menuToggle.addEventListener("click", () => {
+    elements.menuToggle.classList.toggle("active");
+    elements.headerActions.classList.toggle("active");
+  });
+
   elements.themeToggle.addEventListener("click", () => {
+    elements.menuToggle.classList.remove("active");
+    elements.headerActions.classList.remove("active");
     state.theme = state.theme === "dark" ? "light" : "dark";
     saveTheme();
     applyTheme();
   });
-  elements.drawerToggle.addEventListener("click", openDrawer);
+  elements.drawerToggle.addEventListener("click", () => {
+    elements.menuToggle.classList.remove("active");
+    elements.headerActions.classList.remove("active");
+    openDrawer();
+  });
+  elements.shuffle.addEventListener("click", () => {
+    elements.menuToggle.classList.remove("active");
+    elements.headerActions.classList.remove("active");
+    shuffleCard();
+  });
   elements.drawerClose.addEventListener("click", closeDrawer);
   elements.drawerOverlay.addEventListener("click", closeDrawer);
 
   elements.next.addEventListener("click", nextCard);
-  elements.prev.addEventListener("click", prevCard);
+  elements.prev.addEventListener("click", () => {
+    elements.menuToggle.classList.remove("active");
+    elements.headerActions.classList.remove("active");
+    prevCard();
+  });
   elements.shuffle.addEventListener("click", shuffleCard);
-  elements.familiar.addEventListener("click", markFamiliar);
-  elements.unfamiliar.addEventListener("click", markUnfamiliar);
+  elements.familiar.addEventListener("click", () => {
+    elements.menuToggle.classList.remove("active");
+    elements.headerActions.classList.remove("active");
+    markFamiliar();
+  });
+  elements.unfamiliar.addEventListener("click", () => {
+    elements.menuToggle.classList.remove("active");
+    elements.headerActions.classList.remove("active");
+    markUnfamiliar();
+  });
   elements.filterLevel.addEventListener("change", applyFilters);
   elements.filterAcademic.addEventListener("change", applyFilters);
   elements.filterUnfamiliar.addEventListener("change", () => {
@@ -371,9 +455,20 @@ function attachEvents() {
     ensureAutoSkipThenRender();
   });
   elements.clearProgress.addEventListener("click", clearProgress);
+  elements.exportBtn.addEventListener("click", exportProgress);
+  elements.importFile.addEventListener("change", importProgress);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeDrawer();
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (window.innerWidth <= 600 && 
+        elements.headerActions.classList.contains("active") &&
+        !elements.headerActions.contains(event.target) &&
+        !elements.menuToggle.contains(event.target)) {
+      elements.menuToggle.classList.remove("active");
+      elements.headerActions.classList.remove("active");
     }
   });
 }
