@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GEPT 單字複習</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <div class="brand-text">
+          <div class="brand-title">GEPT 單字複習</div>
+          <div class="brand-subtitle">Intermediate · MD3 Flashcards</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outlined" id="themeToggle">深色模式</button>
+        <button class="btn btn-tonal" id="drawerToggle">總表</button>
+        <button class="btn btn-outlined" id="shuffle">隨機</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="card-panel" aria-live="polite">
+        <div class="card" id="card">
+          <div class="card-header">
+            <div class="chip" id="pos"></div>
+            <div class="chip chip-secondary" id="level"></div>
+          </div>
+          <div class="card-body">
+            <div class="word" id="word">載入中...</div>
+            <div class="meaning" id="meaning"></div>
+            <div class="note" id="note"></div>
+          </div>
+          <div class="card-footer">
+            <div class="meta" id="academic"></div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-outlined" id="prev">上一個</button>
+          <button class="btn btn-filled" id="next">下一個</button>
+          <button class="btn btn-tonal" id="familiar">熟悉</button>
+          <button class="btn btn-outlined" id="unfamiliar">不熟</button>
+        </div>
+      </section>
+
+      <section class="options-panel">
+        <details class="options-details">
+          <summary class="options-summary">選項與統計</summary>
+          <div class="stats-panel">
+            <div class="stats-card">
+              <div class="stats-title">篩選</div>
+              <div class="filter-group">
+                <label class="filter-label" for="filterLevel">級數</label>
+                <select class="filter-select" id="filterLevel"></select>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label" for="filterAcademic">學術字彙</label>
+                <select class="filter-select" id="filterAcademic"></select>
+              </div>
+              <div class="filter-toggle">
+                <input type="checkbox" id="filterUnfamiliar" />
+                <label for="filterUnfamiliar">只看不熟</label>
+              </div>
+              <div class="filter-toggle">
+                <input type="checkbox" id="autoSkipFamiliar" />
+                <label for="autoSkipFamiliar">已熟跳過</label>
+              </div>
+              <button class="btn btn-outlined" id="clearProgress">清除進度</button>
+            </div>
+            <div class="stats-card">
+              <div class="stats-title">本次進度</div>
+              <div class="stats-row">
+                <span>總庫題數</span>
+                <strong id="totalAllCount">0</strong>
+              </div>
+              <div class="stats-row">
+                <span>符合篩選</span>
+                <strong id="totalCount">0</strong>
+              </div>
+              <div class="stats-row">
+                <span>已看題數</span>
+                <strong id="seenCount">0</strong>
+              </div>
+              <div class="stats-row">
+                <span>熟悉</span>
+                <strong id="familiarCount">0</strong>
+              </div>
+              <div class="stats-row">
+                <span>不熟</span>
+                <strong id="unfamiliarCount">0</strong>
+              </div>
+            </div>
+            <div class="stats-card">
+              <div class="stats-title">使用提示</div>
+              <p class="stats-text">使用本機 server 開啟頁面，才能正確載入 CSV。</p>
+              <p class="stats-text">可用 Live Server 或任何 http server。</p>
+            </div>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>資料來源：GEPT_Intermediate.csv</span>
+      <span id="status">準備中</span>
+    </footer>
+
+    <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-title">單字總表</div>
+          <div class="drawer-subtitle">目前顯示：<span id="drawerCount">0</span> 筆</div>
+        </div>
+        <button class="btn btn-outlined" id="drawerClose">關閉</button>
+      </div>
+      <div class="drawer-body">
+        <table class="drawer-table">
+          <thead>
+            <tr>
+              <th>狀態</th>
+              <th>字彙</th>
+              <th>詞類</th>
+              <th>中文</th>
+              <th>註解</th>
+              <th>級數</th>
+              <th>學術字彙</th>
+            </tr>
+          </thead>
+          <tbody id="drawerTableBody"></tbody>
+        </table>
+      </div>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>
