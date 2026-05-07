@@ -1,6 +1,6 @@
 {
-  "name": "GEPT 單字複習",
-  "short_name": "GEPT 單字",
+  "name": "GEPT 單字複習小工具",
+  "short_name": "GEPT 單字複習小工具",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#eff1f5",
