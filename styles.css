@@ -916,7 +916,8 @@ body[data-theme="dark"] .drawer-table tr.current td {
   }
 
   .card-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: stretch;
     gap: 8px;
   }
@@ -925,6 +926,16 @@ body[data-theme="dark"] .drawer-table tr.current td {
     width: 100%;
     text-align: center;
     padding: 12px 16px;
+  }
+
+  .card-actions #prev,
+  .card-actions #next {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .card-actions #familiar,
+  .card-actions #unfamiliar {
+    flex: 1 1 100%;
   }
 
   .progress-info {
