@@ -52,6 +52,7 @@ const state = {
   autoSkipFamiliar: false,
   theme: "light",
   lastItemId: null,
+  hasServiceWorker: "serviceWorker" in navigator,
 };
 
 const headerRow = "字彙,詞類,中文,註解,級數,學術字彙";
@@ -128,7 +129,7 @@ function updateStats() {
   const marked = state.familiar.size + state.unfamiliar.size;
   const percent = total > 0 ? (marked / total) * 100 : 0;
   elements.progressBar.style.width = `${percent}%`;
-  elements.progressText.textContent = `${marked} / ${total}`;
+  elements.progressText.textContent = `${marked} / ${total} (${Math.round(percent)}%)`;
 }
 
 function setStatus(text) {
@@ -242,6 +243,18 @@ function saveTheme() {
 function applyCardFade() {
   elements.card.classList.add("fade");
   window.setTimeout(() => elements.card.classList.remove("fade"), 220);
+}
+
+async function registerServiceWorker() {
+  if (!state.hasServiceWorker) return;
+  try {
+    const registration = await navigator.serviceWorker.register("./service-worker.js");
+    if (registration.waiting) {
+      setStatus("已更新，可離線使用");
+    }
+  } catch (error) {
+    console.error("Service worker 註冊失敗:", error);
+  }
 }
 
 function renderCard() {
@@ -591,6 +604,7 @@ async function init() {
     elements.autoSkipFamiliar.checked = state.autoSkipFamiliar;
     applyFilters();
     setStatus("已載入");
+    registerServiceWorker();
   } catch (error) {
     elements.word.textContent = "無法載入 CSV";
     elements.note.textContent = "請確認使用本機 server 開啟，並且 CSV 檔案在同層目錄。";
@@ -599,6 +613,7 @@ async function init() {
     elements.level.textContent = "";
     elements.academic.textContent = "";
     setStatus("載入失敗");
+    registerServiceWorker();
   }
 }
 

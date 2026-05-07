@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">GEPT 單字複習</title>
+  <desc id="desc">Purple pulse dot logo.</desc>
+  <defs>
+    <radialGradient id="pulse" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="0.4" stop-color="#cba6f7" stop-opacity="0.9" />
+      <stop offset="1" stop-color="#8839ef" stop-opacity="1" />
+    </radialGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.65">
+      <stop offset="0" stop-color="#cba6f7" stop-opacity="0.6" />
+      <stop offset="0.6" stop-color="#8839ef" stop-opacity="0.25" />
+      <stop offset="1" stop-color="#8839ef" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="120" fill="#1f1930" />
+  <circle cx="256" cy="256" r="190" fill="url(#halo)" />
+  <circle cx="256" cy="256" r="92" fill="url(#pulse)" />
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#cba6f7" stroke-width="10" opacity="0.45" />
+</svg>
