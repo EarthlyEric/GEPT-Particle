@@ -260,6 +260,21 @@ body[data-theme="dark"] {
 }
 
 @media (max-width: 600px) {
+  .app-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .brand-text {
+    min-width: 0;
+  }
+
   .menu-toggle {
     display: flex;
   }
@@ -887,6 +902,23 @@ body[data-theme="dark"] .drawer-table tr.current td {
     align-items: flex-start;
     padding: 12px 5vw 20px;
     font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .brand-text {
+    min-width: 0;
   }
 }
 
