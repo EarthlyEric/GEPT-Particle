@@ -22,6 +22,7 @@ const elements = {
   filterLevel: document.getElementById("filterLevel"),
   filterAcademic: document.getElementById("filterAcademic"),
   filterUnfamiliar: document.getElementById("filterUnfamiliar"),
+  filterUnmarked: document.getElementById("filterUnmarked"),
   autoSkipFamiliar: document.getElementById("autoSkipFamiliar"),
   clearProgress: document.getElementById("clearProgress"),
   totalAllCount: document.getElementById("totalAllCount"),
@@ -49,6 +50,7 @@ const state = {
   unfamiliar: new Set(),
   randomPool: [],
   filterOnlyUnfamiliar: false,
+  filterOnlyUnmarked: false,
   autoSkipFamiliar: false,
   theme: "light",
   lastItemId: null,
@@ -126,7 +128,12 @@ function updateStats() {
   elements.unfamiliarCount.textContent = state.unfamiliar.size.toString();
 
   const total = state.items.length;
-  const marked = state.familiar.size + state.unfamiliar.size;
+  const marked = state.items.reduce((count, item) => {
+    if (state.familiar.has(item.id) || state.unfamiliar.has(item.id)) {
+      return count + 1;
+    }
+    return count;
+  }, 0);
   const percent = total > 0 ? (marked / total) * 100 : 0;
   elements.progressBar.style.width = `${percent}%`;
   elements.progressText.textContent = `${marked} / ${total} (${Math.round(percent)}%)`;
@@ -370,12 +377,16 @@ function applyFilters() {
   const levelValue = elements.filterLevel.value;
   const academicValue = elements.filterAcademic.value;
   const onlyUnfamiliar = state.filterOnlyUnfamiliar;
+  const onlyUnmarked = state.filterOnlyUnmarked;
 
   state.items = state.allItems.filter((item) => {
     const levelMatch = levelValue ? item.level === levelValue : true;
     const academicMatch = academicValue ? item.academic === academicValue : true;
     const unfamiliarMatch = onlyUnfamiliar ? state.unfamiliar.has(item.id) : true;
-    return levelMatch && academicMatch && unfamiliarMatch;
+    const unmarkedMatch = onlyUnmarked
+      ? !state.familiar.has(item.id) && !state.unfamiliar.has(item.id)
+      : true;
+    return levelMatch && academicMatch && unfamiliarMatch && unmarkedMatch;
   });
 
   state.index = 0;
@@ -409,12 +420,14 @@ function loadProgress() {
     state.familiar = new Set(data.familiar || []);
     state.unfamiliar = new Set(data.unfamiliar || []);
     state.filterOnlyUnfamiliar = Boolean(data.filterOnlyUnfamiliar);
+    state.filterOnlyUnmarked = Boolean(data.filterOnlyUnmarked);
     state.autoSkipFamiliar = Boolean(data.autoSkipFamiliar);
     state.lastItemId = Number.isInteger(data.lastItemId) ? data.lastItemId : null;
   } catch (error) {
     state.familiar = new Set();
     state.unfamiliar = new Set();
     state.filterOnlyUnfamiliar = false;
+    state.filterOnlyUnmarked = false;
     state.autoSkipFamiliar = false;
     state.lastItemId = null;
   }
@@ -425,6 +438,7 @@ function saveProgress() {
     familiar: Array.from(state.familiar),
     unfamiliar: Array.from(state.unfamiliar),
     filterOnlyUnfamiliar: state.filterOnlyUnfamiliar,
+    filterOnlyUnmarked: state.filterOnlyUnmarked,
     autoSkipFamiliar: state.autoSkipFamiliar,
     lastItemId: state.lastItemId,
   };
@@ -435,9 +449,11 @@ function clearProgress() {
   state.familiar = new Set();
   state.unfamiliar = new Set();
   state.filterOnlyUnfamiliar = false;
+  state.filterOnlyUnmarked = false;
   state.autoSkipFamiliar = false;
   state.lastItemId = null;
   elements.filterUnfamiliar.checked = false;
+  elements.filterUnmarked.checked = false;
   elements.autoSkipFamiliar.checked = false;
   saveProgress();
   applyFilters();
@@ -448,6 +464,7 @@ function exportProgress() {
     familiar: Array.from(state.familiar),
     unfamiliar: Array.from(state.unfamiliar),
     filterOnlyUnfamiliar: state.filterOnlyUnfamiliar,
+    filterOnlyUnmarked: state.filterOnlyUnmarked,
     autoSkipFamiliar: state.autoSkipFamiliar,
     lastItemId: state.lastItemId,
   };
@@ -469,9 +486,11 @@ async function importProgress(event) {
     state.familiar = new Set(data.familiar || []);
     state.unfamiliar = new Set(data.unfamiliar || []);
     state.filterOnlyUnfamiliar = data.filterOnlyUnfamiliar || false;
+    state.filterOnlyUnmarked = data.filterOnlyUnmarked || false;
     state.autoSkipFamiliar = data.autoSkipFamiliar || false;
     state.lastItemId = Number.isInteger(data.lastItemId) ? data.lastItemId : null;
     elements.filterUnfamiliar.checked = state.filterOnlyUnfamiliar;
+    elements.filterUnmarked.checked = state.filterOnlyUnmarked;
     elements.autoSkipFamiliar.checked = state.autoSkipFamiliar;
     saveProgress();
     applyFilters();
@@ -548,6 +567,19 @@ function attachEvents() {
   elements.filterAcademic.addEventListener("change", applyFilters);
   elements.filterUnfamiliar.addEventListener("change", () => {
     state.filterOnlyUnfamiliar = elements.filterUnfamiliar.checked;
+    if (state.filterOnlyUnfamiliar) {
+      state.filterOnlyUnmarked = false;
+      elements.filterUnmarked.checked = false;
+    }
+    saveProgress();
+    applyFilters();
+  });
+  elements.filterUnmarked.addEventListener("change", () => {
+    state.filterOnlyUnmarked = elements.filterUnmarked.checked;
+    if (state.filterOnlyUnmarked) {
+      state.filterOnlyUnfamiliar = false;
+      elements.filterUnfamiliar.checked = false;
+    }
     saveProgress();
     applyFilters();
   });
@@ -601,6 +633,7 @@ async function init() {
     buildSelectOptions(elements.filterAcademic, academics, "全部");
 
     elements.filterUnfamiliar.checked = state.filterOnlyUnfamiliar;
+    elements.filterUnmarked.checked = state.filterOnlyUnmarked;
     elements.autoSkipFamiliar.checked = state.autoSkipFamiliar;
     applyFilters();
     setStatus("已載入");
